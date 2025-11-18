@@ -24,55 +24,46 @@ from collections import Counter
 import time
 
 # Include base URL and header
-BASE_URL = "https://www.exploit-db.com/?order_by=date&order=desc&pg="
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9",
-    "Referer": "https://www.google.com/",
-    "DNT": "1",
-    "Upgrade-Insecure-Requests": "1",
-    "Cache-Control": "no-cache",
-    "Pragma": "no-cache"
-}
+BASE_URL = "https://www.exploit-db.com/ajax/system/search"
+HEADERS = {"User-Agent": "Mozilla/5.0 (WINDOWS NT 10.0; Win64; x64)",
+           "X-Requested-With": "XMLHttpRequest",
+           "Content-Type": "application/json",
+           "Accept": "application/json"}
 
 
 """
     - Scrapes a single page from exploit-db
     - returns values desired from the site  
 """
-def scrape_page(page_num):
-    url = BASE_URL + str(page_num)
-    r = requests.get(url, headers=HEADERS)
-    soup = BeautifulSoup(r.text, "html.parser")
+def scrape_page(start=0, length=50):
 
-    if soup.title:
-        print(f"[DEBUG] Page {page_num} Title:", soup.title.string)
+    params = {
+        "draw": 1,
+        "columns": [
+            {"data": "date", "name": "", "searchable": True, "orderable": True},
+            {"data": "description", "searchable": True, "orderable": False},
+            {"data": "author", "searchable": True, "orderable": True},
+            {"data": "type", "searchable": True, "orderable": True},
+            {"data": "platform", "searchable": True, "orderable": True},
+            {"data": "port", "searchable": True, "orderable": True}
+        ],
+        "order": [{"column": 0, "dir": "desc"}],
+        "start": start,
+        "length": length,
+        "search": {"value": "", "regex": False}
+    }
 
-        
-    table = soup.find("table", id="exploits-table")
-    if not table:
-        return []
-
-    rows = table.find("tbody").find_all("tr", attrs={"data-id": True})
+    r = requests.post(BASE_URL, json=params, headers=HEADERS)
+    data = r.json()
 
     exploits = []
 
-    for row in rows: 
-        cols = row.find_all("td")
-        if len(cols) < 5:
-            continue
-
-        date = cols[0].text.strip()
-        title = cols[1].text.strip()
-        platform = cols[3].text.strip()
-        exploit_type = cols[4].text.strip()
-
+    for row in data.get("data", []): 
         exploits.append({
-            "date": date,
-            "title": title,
-            "platform": platform,
-            "type": exploit_type
+            "date": row["date"],
+            "title": row["title"],
+            "platform": row["platform"],
+            "type": row["type"]
         })
 
     return exploits
@@ -82,14 +73,13 @@ def scrape_page(page_num):
     - Scrapes multiple pages from exploit-db
         - for n in pages
 """
-def scrape_site(n):
+def scrape_site(pages=3, page_size=50):
     all_data = []
     
-    for i in range(1, n + 1):
-        print(f"[+] Scraping page {i}...")
-        page_data = scrape_page(i)
-        if not page_data:
-            break
+    for i in range(pages):
+        print(f"[+] Scraping page {i+1}...")
+        start = i * page_size
+        page_data = scrape_page(start=start, length=page_size)
         all_data.extend(page_data)
         time.sleep(1)
 
@@ -102,6 +92,10 @@ def print_vulns(data):
     print("==============================")
 
     total = len(data)
+    if total == 0:
+        print("Nothing was scraped")
+        return
+    
     print(f"Total vulnerablilties scraped: {total}")
 
     platforms = Counter(d["platform"] for d in data)
@@ -121,5 +115,5 @@ def print_vulns(data):
         print(f"{k}: {v}")
 
 if __name__ == "__main__":
-    data = scrape_site(n=3)
+    data = scrape_site(pages=3)
     print_vulns(data)
