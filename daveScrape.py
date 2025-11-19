@@ -27,47 +27,31 @@ import time
 
 
 ## Some version of this is to keep, retype rest
-BASE_URL = "https://www.exploit-db.com/ajax/system/search"
-HEADERS = {"User-Agent": "Mozilla/5.0 (WINDOWS NT 10.0; Win64; x64)",
-           "X-Requested-With": "XMLHttpRequest",
-           "Content-Type": "application/json",
-           "Accept": "application/json"}
+BASE_URL = "https://www.example.com"
+HEADERS = {"User-Agent": "Mozilla/5.0 (WINDOWS NT 10.0; Win64; x64)"}
 
 
 """
     - Scrapes a single page from exploit-db
     - returns values desired from the site  
 """
-def scrape_page(start=0, length=50):
-
-    params = {
-        "draw": 1,
-        "columns": [
-            {"data": "date", "name": "", "searchable": True, "orderable": True},
-            {"data": "description", "searchable": True, "orderable": False},
-            {"data": "author", "searchable": True, "orderable": True},
-            {"data": "type", "searchable": True, "orderable": True},
-            {"data": "platform", "searchable": True, "orderable": True},
-            {"data": "port", "searchable": True, "orderable": True}
-        ],
-        "order": [{"column": 0, "dir": "desc"}],
-        "start": start,
-        "length": length,
-        "search": {"value": "", "regex": False}
-    }
-
-    r = requests.post(BASE_URL, json=params, headers=HEADERS)
-    data = r.json()
+def scrape_page():
 
     exploits = []
 
-    for row in data.get("data", []): 
-        exploits.append({
-            "date": row["date"],
-            "title": row["title"],
-            "platform": row["platform"],
-            "type": row["type"]
-        })
+    response = requests.get(BASE_URL)
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    # select what you want
+
+    title = soup.select_one('h1').text
+    text = soup.select_one('p').text
+    link = soup.select_one('a').get('href')
+
+    print(title)
+    print(text)
+    print(link)
+
 
     return exploits
 
@@ -118,5 +102,6 @@ def print_vulns(data):
         print(f"{k}: {v}")
 
 if __name__ == "__main__":
-    data = scrape_site(pages=3)
-    print_vulns(data)
+    scrape_page()
+    #data = scrape_site(pages=3)
+    #print_vulns(data)
