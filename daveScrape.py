@@ -22,14 +22,39 @@ import requests
 from bs4 import BeautifulSoup
 from collections import Counter
 import time
+import json
+import os
 
 # Include base URL and headeri
 
 
 ## Some version of this is to keep, retype rest
-BASE_URL = "https://www.example.com"
-HEADERS = {"User-Agent": "Mozilla/5.0 (WINDOWS NT 10.0; Win64; x64)"}
+BASE_URL = "https://www.exploit-db.com"
+HEADERS = {
+        "authority": "www.exploit-db.com",
+        "sec-ch-ua": '" Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97"',
+        "accept": "application/json, text/javascript, */*; q=0.01",
+        "x-requested-with": "XMLHttpRequest",
+        "sec-ch-ua-mobile": "?0",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+        "sec-ch-ua-platform": '"Linux"',
+        "sec-fetch-site": "same-origin",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-dest": "empty",
+        "referer": "https://www.exploit-db.com/",
+        "accept-language": "en-US,en;q=0.9",
 
+        }
+
+row_retrieval_cap = 50
+
+row_start_offset = 0
+
+# Create file to save data to 
+data_json = './exportData.json'
+if os.path.exists(data_json):
+    with open(data_json, "w") as filp:
+        pass
 
 """
     - Scrapes a single page from exploit-db
