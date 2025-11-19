@@ -23,7 +23,10 @@ from bs4 import BeautifulSoup
 from collections import Counter
 import time
 
-# Include base URL and header
+# Include base URL and headeri
+
+
+## Some version of this is to keep, retype rest
 BASE_URL = "https://www.exploit-db.com/ajax/system/search"
 HEADERS = {"User-Agent": "Mozilla/5.0 (WINDOWS NT 10.0; Win64; x64)",
            "X-Requested-With": "XMLHttpRequest",
