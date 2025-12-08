@@ -41,11 +41,10 @@ row_retrieval_cap = 50
 
 row_start_offset = 0
 
-# Create file to save data to 
-data_json = './exportData.json'
-if os.path.exists(data_json):
-    with open(data_json, "w") as filp:
-        pass
+def write_json(data, filename="exportData.json"):
+    with open(filename, "w", encoding="utf-8") as json_file:
+        json.dump(data, json_file, indent=4, ensure_ascii=False)
+    print(f"[*] Data successfully writen to {filename}")
 
 """
     - Scrapes a single page from exploit-db
@@ -112,5 +111,12 @@ def print_vulns(data):
 
 if __name__ == "__main__":
     scrape_page()
+
+    ## Data stores .json output 
+    
     data = scrape_site(pages=3, page_size=50)
-    print_vulns(data)
+
+    ## Insert .csv save here using data as the parameter 
+    write_json(data)
+    
+    #print_vulns(data)
